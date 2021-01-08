@@ -13,15 +13,18 @@ class Connector:
 
     def get_instruments(self):
         with self.driver.session() as session:
-            instruments = session.run("MATCH (n:Game) RETURN n LIMIT 25").single()
-            return str(instruments['n'])
+            result = session.run("MATCH (n:Instrument:u7kocierz) RETURN n AS instrument")
+            out = {'instruments': []}
+            for record in result:
+                out['instruments'].append(record['instrument']['name'])
+            return out
 
 c = Connector('bolt://149.156.109.37:7687', 'u7kocierz', '293170')
 
 
 @app.route('/instruments', methods=['GET'])
 def instruments():
-    response = flask.jsonify({'a': c.get_instruments()})
+    response = flask.jsonify(c.get_instruments())
     return response
 
 @app.route('/')
