@@ -19,12 +19,39 @@ class Connector:
                 out['instruments'].append(record['instrument']['name'])
             return out
 
+    def suggest_instruments(self, type, min, max):
+        with self.driver.session() as session:
+            result = session.run('MATCH (n)-[r:of_type]->(m) WHERE m.name=$type AND n.price >= $min AND n.price <= $max RETURN n AS instrument', type=type, min=min, max=max)
+            out = {'suggested instruments': []}
+            for record in result:
+                out['suggested instruments'].append(record['instrument']['name'])
+            return out
+
+    def instrument_producers(self, type):
+        with self.driver.session() as session:
+            result = session.run('MATCH (n:u7kocierz)<-[:manufacturer]-()-[:of_type]->(m:u7kocierz) WHERE m.name=$type RETURN DISTINCT n as producer', type=type)
+            out = {type + ' producers': []}
+            for record in result:
+                out[type + ' producers'].append(record['producer']['name'])
+            return out
+
+
 c = Connector('bolt://149.156.109.37:7687', 'u7kocierz', '293170')
 
 
 @app.route('/instruments', methods=['GET'])
 def instruments():
     response = flask.jsonify(c.get_instruments())
+    return response
+
+@app.route('/instruments/suggestions/<string:type>/<int:min>/<int:max>', methods=['GET'])
+def instruments_suggestions(type, min, max):
+    response = flask.jsonify(c.suggest_instruments(type, min, max))
+    return response
+
+@app.route('/instruments/producers/<string:type>', methods=['GET'])
+def instruments_producers(type):
+    response = flask.jsonify(c.instrument_producers(type))
     return response
 
 @app.route('/')
