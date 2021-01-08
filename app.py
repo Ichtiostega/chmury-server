@@ -11,20 +11,15 @@ class Connector:
 
     def get_instruments(self):
         with self.driver.session() as session:
-            instruments = session.write_transaction(self._get_instrument)
-            return instruments
-
-    @staticmethod
-    def _get_instrument(tx):
-        result = tx.run("MATCH (n:Instrument) RETURN n LIMIT 25")
-        return result.single()[0]
+            instruments = session.run("MATCH (n:Game) RETURN n LIMIT 25").single()
+            return str(instruments['n'])
 
 c = Connector('bolt://149.156.109.37:7687', 'u7kocierz', '293170')
 
 
-# @app.route('/instruments', methods=['GET'])
-# def instruments():
-#     return c.get_instruments()
+@app.route('/instruments', methods=['GET'])
+def instruments():
+    return c.get_instruments()
 
 @app.route('/')
 def index():
