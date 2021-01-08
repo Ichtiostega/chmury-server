@@ -21,6 +21,8 @@ c = Connector('bolt://149.156.109.37:7687', 'u7kocierz', '293170')
 def instruments():
     response flask.jsonify({'a': c.get_instruments()})
     response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', '*')
+    response.headers.add('Access-Control-Allow-Methods', '*')
     return response
 
 @app.route('/')
