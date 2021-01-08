@@ -1,6 +1,8 @@
-from flask import Flask
+import flask
+from flask_cors import CORS
 from neo4j import GraphDatabase
-app = Flask(__name__)
+app = flask.Flask(__name__)
+CORS(app)
 
 class Connector:
     def __init__(self, uri, user, password):
@@ -19,10 +21,7 @@ c = Connector('bolt://149.156.109.37:7687', 'u7kocierz', '293170')
 
 @app.route('/instruments', methods=['GET'])
 def instruments():
-    response flask.jsonify({'a': c.get_instruments()})
-    response.headers.add('Access-Control-Allow-Origin', '*')
-    response.headers.add('Access-Control-Allow-Headers', '*')
-    response.headers.add('Access-Control-Allow-Methods', '*')
+    response = flask.jsonify({'a': c.get_instruments()})
     return response
 
 @app.route('/')
