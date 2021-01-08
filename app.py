@@ -12,7 +12,7 @@ class Connector:
     def get_instruments(self):
         with self.driver.session() as session:
             instruments = session.write_transaction(self._get_instrument)
-            retuer instruments
+            return instruments
 
     @staticmethod
     def _get_instrument(tx):
