@@ -13,10 +13,10 @@ class Connector:
 
     def get_instruments(self):
         with self.driver.session() as session:
-            result = session.run("MATCH (n:Instrument:u7kocierz) RETURN n AS instrument")
+            result = session.run("MATCH (n:u7kocierz)-[:manufacturer]->(m:u7kocierz) RETURN n AS instrument, m AS producer")
             out = {'instruments': []}
             for record in result:
-                out['instruments'].append(record['instrument']['name'])
+                out['instruments'].append({'name': record['instrument']['name'], 'price': record['instrument']['price'], 'manufacturer': record['producer']['name']})
             return out
 
     def suggest_instruments(self, type, min, max):
