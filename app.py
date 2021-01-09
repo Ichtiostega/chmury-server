@@ -128,7 +128,7 @@ def instruments():
 #     response = flask.jsonify(c.suggest_instruments(type, **body))
 #     return response
 
-@app.route('/preferences/<int:login>', methods=['POST'])
+@app.route('/preferences/<string:login>', methods=['POST'])
 def preferences(login):
     body = flask.request.json
     response = flask.jsonify(c.save_preferences(login, body))
