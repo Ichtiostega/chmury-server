@@ -49,6 +49,7 @@ class Connector:
             args['query'] += ' AND m.price<=$max'
             args['max'] = max
         args['query'] += ' RETURN m AS instrument, n AS type, o AS genre, p AS musician, q AS producer'
+        print(args)
         return args
 
 
