@@ -29,50 +29,6 @@ class Connector:
             session.run("MATCH (m:user:u7kocierz),(n:"+k+":u7kocierz) WHERE n.name=$v AND m.name=$login CREATE (m)-[r:likes]->(n)", v=v, login=login)
 
 
-    
-
-    # @staticmethod
-    # def _gen_suggest_query(type, genres = [], producers = [], musicians = [], min=None, max=None):
-    #     args = {'type': type}
-    #     args['query'] = 'MATCH (n:Type:u7kocierz)<-[]-(m:Instrument)-[]->(o:Genre:u7kocierz),(p:Musician:u7kocierz)<-[]-(m:Instrument)-[]->(q:Company) WHERE n.name=$type'
-    #     for i, genre in enumerate(genres):
-    #         args['genre'+str(i)] = genre
-    #         if i==0:
-    #             args['query'] += ' AND '
-    #             args['query'] += '(o.name=$genre'+str(i)
-    #         else:
-    #             args['query'] += ' OR o.name=$genre'+str(i)
-    #         if i==(len(genres)-1):
-    #             args['query'] += ')'
-    #     for i, producer in enumerate(producers):
-    #         args['producer'+str(i)] = producer
-    #         if i==0:
-    #             args['query'] += ' AND '
-    #             args['query'] += '(q.name=$producer'+str(i)
-    #         else:
-    #             args['query'] += ' OR q.name=$producer'+str(i)
-    #         if i==(len(producers)-1):
-    #             args['query'] += ')'
-    #     for i, musician in enumerate(musicians):
-    #         args['musician'+str(i)] = musician
-    #         if i==0:
-    #             args['query'] += ' AND '
-    #             args['query'] += '(p.name=$musician'+str(i)
-    #         else:
-    #             args['query'] += ' OR p.name=$musician'+str(i)
-    #         if i==(len(musicians)-1):
-    #             args['query'] += ')'
-    #     if min:
-    #         args['query'] += ' AND m.price>=$min'
-    #         args['min'] = min
-    #     if max:
-    #         args['query'] += ' AND m.price<=$max'
-    #         args['max'] = max
-    #     args['query'] += ' RETURN DISTINCT m AS instrument, q AS producer'
-    #     print(args)
-    #     return args
-
-
     def get_instruments(self):
         with self.driver.session() as session:
             result = session.run("MATCH (n:u7kocierz)<-[:manufactures]-(m:u7kocierz) RETURN n AS instrument, m AS producer")
@@ -96,15 +52,6 @@ class Connector:
             else:
                 return {'Recommended instrument': [{'name': 'None available', 'price': 0}]}
 
-    # def suggest_instruments(self, type, genres = [], producers = [], musicians = [], min=None, max=None):
-    #     with self.driver.session() as session:
-    #         print(type, genres, producers, musicians, min, max)
-    #         result = session.run(**self._gen_suggest_query(type, genres, producers, musicians, min, max))
-    #         out = {'suggested instruments': []}
-    #         for record in result:
-    #             out['suggested instruments'].append({'name': record['instrument']['name'], 'price': record['instrument']['price'], 'manufacturer': record['producer']['name']})
-    #         return out
-
     def instrument_producers(self, type):
         with self.driver.session() as session:
             result = session.run('MATCH (n:u7kocierz)-[:manufactures]->()<-[:subtype]-(m:u7kocierz) WHERE m.name=$type RETURN DISTINCT n as producer', type=type)
@@ -113,6 +60,21 @@ class Connector:
                 out[type + ' producers'].append({'name': record['producer']['name']})
             return out
 
+    def instrument_popularity(self):
+        with self.driver.session() as session:
+            result = session.run('MATCH (n)-[r:plays]->(m) RETURN m AS instrument, count(m) AS amount')
+            out = {'Instrument popularity': []}
+            for record in result:
+                out['Instrument popularity'].append({'name': record['instrument']['name'], 'amount': record['amount']})
+            return out
+
+    def instrument_type_cost(self, type, min, max):
+        with self.driver.session() as session:
+            result = session.run('MATCH (m:u7kocierz)-[:subtype]->(n:u7kocierz) WHERE n.price>=$min AND n.price<=$max AND m.name=$type RETURN n AS instrument', type=type, min=min, max=max)
+            out = {'Available instruments': []}
+            for record in result:
+                out['Available instruments'].append({'name': record['instrument']['name'], 'price': record['instrument']['price']})
+            return out
 
 c = Connector('bolt://149.156.109.37:7687', 'u7kocierz', '293170')
 
@@ -121,13 +83,6 @@ c = Connector('bolt://149.156.109.37:7687', 'u7kocierz', '293170')
 def instruments():
     response = flask.jsonify(c.get_instruments())
     return response
-
-# @app.route('/instruments/suggestions/<string:type>', methods=['POST'])
-# def instruments_suggestions(type):
-#     body = flask.request.json
-#     print(type, body)
-#     response = flask.jsonify(c.suggest_instruments(type, **body))
-#     return response
 
 @app.route('/preferences/<string:login>', methods=['POST'])
 def preferences(login):
@@ -146,11 +101,20 @@ def instruments_producers(type):
     response = flask.jsonify(c.instrument_producers(type))
     return response
 
+@app.route('/instruments/popularity', methods=['GET'])
+def instruments_popularity():
+    response = flask.jsonify(c.instrument_popularity())
+    return response
+
+@app.route('/instruments/<string:type>/<int:min>/<int:max>', methods=['GET'])
+def instrument_type_cost(type, min, max):
+    response = flask.jsonify(c.instrument_type_cost(type, min, max))
+    return response
+
 @app.route('/')
 def index():
     return "<h1>You requested in the wrong neighborhood friend!</h1>"
 
 if __name__ == '__main__':
     app.run(threaded=True, port=5000)
-    # c.save_preferences('Nowak', {'Company': 'Gibson'})
-    # print(c.get_suggestion('Nowak', 1001, 100000))
+
