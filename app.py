@@ -21,10 +21,10 @@ class Connector:
 
     def suggest_instruments(self, type, min, max):
         with self.driver.session() as session:
-            result = session.run('MATCH (n)-[r:of_type]->(m) WHERE m.name=$type AND n.price >= $min AND n.price <= $max RETURN n AS instrument', type=type, min=min, max=max)
+            result = session.run('MATCH (o)<-[:manufacturer]-(n)-[r:of_type]->(m) WHERE m.name=$type AND n.price >= $min AND n.price <= $max RETURN n AS instrument, o AS producer', type=type, min=min, max=max)
             out = {'suggested instruments': []}
             for record in result:
-                out['suggested instruments'].append(record['instrument']['name'])
+                out['instruments'].append({'name': record['instrument']['name'], 'price': record['instrument']['price'], 'manufacturer': record['producer']['name']})
             return out
 
     def instrument_producers(self, type):
@@ -32,7 +32,7 @@ class Connector:
             result = session.run('MATCH (n:u7kocierz)<-[:manufacturer]-()-[:of_type]->(m:u7kocierz) WHERE m.name=$type RETURN DISTINCT n as producer', type=type)
             out = {type + ' producers': []}
             for record in result:
-                out[type + ' producers'].append(record['producer']['name'])
+                out[type + ' producers'].append({'name': record['producer']['name']})
             return out
 
 
