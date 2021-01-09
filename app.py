@@ -107,7 +107,7 @@ class Connector:
 
     def instrument_producers(self, type):
         with self.driver.session() as session:
-            result = session.run('MATCH (n:u7kocierz)<-[:manufacturer]-()-[:of_type]->(m:u7kocierz) WHERE m.name=$type RETURN DISTINCT n as producer', type=type)
+            result = session.run('MATCH (n:u7kocierz)-[:manufactures]->()<-[:subtype]-(m:u7kocierz) WHERE m.name=$type RETURN DISTINCT n as producer', type=type)
             out = {type + ' producers': []}
             for record in result:
                 out[type + ' producers'].append({'name': record['producer']['name']})
