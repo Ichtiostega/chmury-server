@@ -87,8 +87,9 @@ class Connector:
                 self._checked_add(login, k, v, session)
 
     def get_suggestion(self, login, min, max):
+        print(login, min, max)
         with self.driver.session() as session:
-            result = session.run("MATCH (n:user:u7kocierz)-[:likes]->()-[]->(m:Instrument:u7kocierz) WHERE n.name=$login AND m.price>=$min AND m.price<=$max RETURN DISTINCT m AS instrument, count(m) AS c ORDER BY c DESC LIMIT 1", login=login, min=min, max=max)
+            result = session.run("MATCH (n:user:u7kocierz)-[:likes]->()-[]->(m:instrument:u7kocierz) WHERE n.name=$login AND m.price>=$min AND m.price<=$max RETURN DISTINCT m AS instrument, count(m) AS c ORDER BY c DESC LIMIT 1", login=login, min=min, max=max)
             record = result.single()
             if record:
                 return {'Recommended instrument': {'name': record['instrument']['name'], 'price': record['instrument']['price']}}
