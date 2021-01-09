@@ -24,7 +24,7 @@ class Connector:
             result = session.run('MATCH (o)<-[:manufacturer]-(n)-[r:of_type]->(m) WHERE m.name=$type AND n.price >= $min AND n.price <= $max RETURN n AS instrument, o AS producer', type=type, min=min, max=max)
             out = {'suggested instruments': []}
             for record in result:
-                out['instruments'].append({'name': record['instrument']['name'], 'price': record['instrument']['price'], 'manufacturer': record['producer']['name']})
+                out['suggested instruments'].append({'name': record['instrument']['name'], 'price': record['instrument']['price'], 'manufacturer': record['producer']['name']})
             return out
 
     def instrument_producers(self, type):
