@@ -62,10 +62,10 @@ class Connector:
 
     def instrument_popularity(self):
         with self.driver.session() as session:
-            result = session.run('MATCH (n)-[r:plays]->(m) RETURN m AS instrument, count(m) AS amount')
+            result = session.run('MATCH (n)-[r:plays]->(m) RETURN m AS instrument, count(m) AS amount ORDER BY amount DESC')
             out = {'Instrument popularity': []}
             for record in result:
-                out['Instrument popularity'].append({'name': record['instrument']['name'], 'amount': record['amount']})
+                out['Instrument popularity'].append({'name': record['instrument']['name'], 'users': record['amount']})
             return out
 
     def instrument_type_cost(self, type, min, max):
@@ -116,5 +116,6 @@ def index():
     return "<h1>You requested in the wrong neighborhood friend!</h1>"
 
 if __name__ == '__main__':
-    app.run(threaded=True, port=5000)
+    # app.run(threaded=True, port=5000)
+    print(c.instrument_popularity())
 
