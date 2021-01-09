@@ -75,7 +75,7 @@ class Connector:
 
     def get_instruments(self):
         with self.driver.session() as session:
-            result = session.run("MATCH (n:u7kocierz)-[:manufacturer]->(m:u7kocierz) RETURN n AS instrument, m AS producer")
+            result = session.run("MATCH (n:u7kocierz)<-[:manufactures]-(m:u7kocierz) RETURN n AS instrument, m AS producer")
             out = {'instruments': []}
             for record in result:
                 out['instruments'].append({'name': record['instrument']['name'], 'price': record['instrument']['price'], 'manufacturer': record['producer']['name']})
@@ -92,9 +92,9 @@ class Connector:
             result = session.run("MATCH (n:user:u7kocierz)-[:likes]->()-[]->(m:instrument:u7kocierz) WHERE n.name=$login AND m.price>=$min AND m.price<=$max RETURN DISTINCT m AS instrument, count(m) AS c ORDER BY c DESC LIMIT 1", login=login, min=min, max=max)
             record = result.single()
             if record:
-                return {'Recommended instrument': {'name': record['instrument']['name'], 'price': record['instrument']['price']}}
+                return {'Recommended instrument': [{'name': record['instrument']['name'], 'price': record['instrument']['price']}]}
             else:
-                return {'Recommended instrument': {'name': 'None available', 'price': 0}}
+                return {'Recommended instrument': [{'name': 'None available', 'price': 0}]}
 
     # def suggest_instruments(self, type, genres = [], producers = [], musicians = [], min=None, max=None):
     #     with self.driver.session() as session:
