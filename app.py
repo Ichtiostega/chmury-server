@@ -65,6 +65,7 @@ class Connector:
 
     def suggest_instruments(self, type, genres = [], producers = [], musicians = [], min=None, max=None):
         with self.driver.session() as session:
+            print(type, genres, producers, musicians, min, max)
             result = session.run(**self._gen_suggest_query(type, genres, producers, musicians, min, max))
             out = {'suggested instruments': []}
             for record in result:
