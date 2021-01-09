@@ -91,6 +91,7 @@ def instruments():
 @app.route('/instruments/suggestions/<string:type>', methods=['POST'])
 def instruments_suggestions(type):
     body = flask.request.json
+    print(type, body)
     response = flask.jsonify(c.suggest_instruments(type, **body))
     return response
 
